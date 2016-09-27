@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sh ./generate-certs.sh
-sh ./deploy-master-keys.sh
-sh ./deploy-workers-keys.sh
+bash ./generate-certs.sh
+bash ./deploy-master-keys.sh
+bash ./deploy-workers-keys.sh
