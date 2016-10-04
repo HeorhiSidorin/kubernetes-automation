@@ -34,7 +34,7 @@ function init_flannel {
             if [ -n "$(curl --silent "$ETCD/v2/machines")" ]; then
                 local ACTIVE_ETCD=$ETCD
                 break
-            fi
+            fikubernetes-dashboard-amd6
             sleep 1
         done
         if [ -n "$ACTIVE_ETCD" ]; then

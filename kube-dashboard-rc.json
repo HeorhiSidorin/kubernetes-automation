@@ -5,9 +5,9 @@
     "labels": {
       "k8s-app": "kubernetes-dashboard",
       "kubernetes.io/cluster-service": "true",
-      "version": "v1.1.1"
+      "version": "v1.4.0"
     },
-    "name": "kubernetes-dashboard-v1.1.1",
+    "name": "kubernetes-dashboard-v1.4.0",
     "namespace": "kube-system"
   },
   "spec": {
@@ -20,13 +20,13 @@
         "labels": {
           "k8s-app": "kubernetes-dashboard",
           "kubernetes.io/cluster-service": "true",
-          "version": "v1.1.1"
+          "version": "v1.4.0"
         }
       },
       "spec": {
         "containers": [
           {
-            "image": "gcr.io/google_containers/kubernetes-dashboard-amd64:v1.1.1",
+            "image": "gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.0",
             "livenessProbe": {
               "httpGet": {
                 "path": "/",
