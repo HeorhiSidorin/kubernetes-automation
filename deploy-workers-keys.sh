@@ -4,7 +4,7 @@ source ./env
 
 for (( i=0; i<$worker_count; i++ ))
 do
-ssh -t -t core@${worker_ips[i]} << EOF
+ssh -o "StrictHostKeyChecking no" -t -t core@${worker_ips[i]} << EOF
 sudo rm -rf /etc/kubernetes/ssl
 sudo mkdir -p /etc/kubernetes/ssl
 exit

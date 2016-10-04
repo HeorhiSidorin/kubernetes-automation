@@ -11,6 +11,8 @@ echo ${worker_ips[1]}
 echo ${worker_fqdns[0]}
 echo ${worker_fqdns[1]}
 
+echo $ETCD_ENDPOINTS
+
 variable="dwe"
 
 sample=slslslsllss$variable
