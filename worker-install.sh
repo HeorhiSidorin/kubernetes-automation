@@ -48,7 +48,7 @@ ExecStartPre=/usr/bin/mkdir -p /var/log/containers
 ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --api-servers=${CONTROLLER_ENDPOINT} \
   --cni-conf-dir=/etc/kubernetes/cni/net.d \
-  --network-plugin=cni \
+  --network-plugin=${K8S_NETWORK_PLUGIN} \
   --container-runtime=${CONTAINER_RUNTIME} \
   --rkt-path=/usr/bin/rkt \
   --rkt-stage1-image=coreos.com/rkt/stage1-coreos \
@@ -266,61 +266,16 @@ EOF
 [Unit]
 Requires=flanneld.service
 After=flanneld.service
-[Service]
-EnvironmentFile=/etc/kubernetes/cni/docker_opts_cni.env
-EOF
-    fi
-
-    local TEMPLATE=/etc/kubernetes/cni/docker_opts_cni.env
-    if [ ! -f $TEMPLATE ]; then
-        echo "TEMPLATE: $TEMPLATE"
-        mkdir -p $(dirname $TEMPLATE)
-        cat << EOF > $TEMPLATE
-DOCKER_OPT_BIP=""
-DOCKER_OPT_IPMASQ=""
 EOF
     fi
 
     local TEMPLATE=/etc/kubernetes/cni/net.d/10-calico.conf
-    if [ "${USE_CALICO}" = "true" ] && [ ! -f "${TEMPLATE}" ]; then
-        echo "TEMPLATE: $TEMPLATE"
-        mkdir -p $(dirname $TEMPLATE)
-        cat << EOF > $TEMPLATE
-{
-    "name": "calico",
-    "type": "flannel",
-    "delegate": {
-        "type": "calico",
-        "etcd_endpoints": "$ETCD_ENDPOINTS",
-        "log_level": "none",
-        "log_level_stderr": "info",
-        "hostname": "${ADVERTISE_IP}",
-        "policy": {
-            "type": "k8s",
-            "k8s_api_root": "${CONTROLLER_ENDPOINT}:443/api/v1/",
-            "k8s_client_key": "/etc/kubernetes/ssl/worker-key.pem",
-            "k8s_client_certificate": "/etc/kubernetes/ssl/worker.pem"
-        }
-    }
-}
+    if [ ! -f $TEMPLATE ]; then
+      echo "TEMPLATE: $TEMPLATE"
+      mkdir -p $(dirname $TEMPLATE)
+      cat << EOF > $TEMPLATE
 EOF
     fi
-
-    local TEMPLATE=/etc/kubernetes/cni/net.d/10-flannel.conf
-    if [ "${USE_CALICO}" = "false" ] && [ ! -f "${TEMPLATE}" ]; then
-        echo "TEMPLATE: $TEMPLATE"
-        mkdir -p $(dirname $TEMPLATE)
-        cat << EOF > $TEMPLATE
-{
-    "name": "podnet",
-    "type": "flannel",
-    "delegate": {
-        "isDefaultGateway": true
-    }
-}
-EOF
-    fi
-
 }
 
 init_config

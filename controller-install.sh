@@ -22,6 +22,12 @@ function init_config {
             exit 1
         fi
     done
+
+    if [ $USE_CALICO = "true" ]; then
+        export K8S_NETWORK_PLUGIN="cni"
+    else
+        export K8S_NETWORK_PLUGIN=""
+    fi
 }
 
 function init_flannel {
@@ -34,7 +40,7 @@ function init_flannel {
             if [ -n "$(curl --silent "$ETCD/v2/machines")" ]; then
                 local ACTIVE_ETCD=$ETCD
                 break
-            fikubernetes-dashboard-amd6
+            fi
             sleep 1
         done
         if [ -n "$ACTIVE_ETCD" ]; then
@@ -72,7 +78,7 @@ ExecStart=/usr/lib/coreos/kubelet-wrapper \
   --api-servers=http://127.0.0.1:8080 \
   --register-schedulable=false \
   --cni-conf-dir=/etc/kubernetes/cni/net.d \
-  --network-plugin=cni \
+  --network-plugin=${K8S_NETWORK_PLUGIN} \
   --container-runtime=${CONTAINER_RUNTIME} \
   --rkt-path=/usr/bin/rkt \
   --rkt-stage1-image=coreos.com/rkt/stage1-coreos \
@@ -246,12 +252,12 @@ spec:
     - --service-cluster-ip-range=${SERVICE_IP_RANGE}
     - --secure-port=443
     - --advertise-address=${ADVERTISE_IP}
-    - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota
+    - --admission-control=NamespaceLifecycle,NamespaceExists,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota
+    - --runtime-config=extensions/v1beta1=true,extensions/v1beta1/thirdpartyresources=true
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
     - --client-ca-file=/etc/kubernetes/ssl/ca.pem
     - --service-account-key-file=/etc/kubernetes/ssl/apiserver-key.pem
-    - --runtime-config=extensions/v1beta1/networkpolicies=true
     livenessProbe:
       httpGet:
         host: 127.0.0.1
@@ -651,11 +657,11 @@ EOF
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: kubernetes-dashboard-v1.4.0
+  name: kubernetes-dashboard-v1.4.1
   namespace: kube-system
   labels:
     k8s-app: kubernetes-dashboard
-    version: v1.4.0
+    version: v1.4.1
     kubernetes.io/cluster-service: "true"
 spec:
   replicas: 1
@@ -665,7 +671,7 @@ spec:
     metadata:
       labels:
         k8s-app: kubernetes-dashboard
-        version: v1.4.0
+        version: v1.4.1
         kubernetes.io/cluster-service: "true"
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
@@ -673,7 +679,7 @@ spec:
     spec:
       containers:
       - name: kubernetes-dashboard
-        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.0
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.1
         resources:
           limits:
             cpu: 100m
@@ -742,23 +748,11 @@ EOF
 [Unit]
 Requires=flanneld.service
 After=flanneld.service
-[Service]
-EnvironmentFile=/etc/kubernetes/cni/docker_opts_cni.env
-EOF
-    fi
-
-    local TEMPLATE=/etc/kubernetes/cni/docker_opts_cni.env
-    if [ ! -f $TEMPLATE ]; then
-        echo "TEMPLATE: $TEMPLATE"
-        mkdir -p $(dirname $TEMPLATE)
-        cat << EOF > $TEMPLATE
-DOCKER_OPT_BIP=""
-DOCKER_OPT_IPMASQ=""
 EOF
     fi
 
     local TEMPLATE=/etc/kubernetes/cni/net.d/10-calico.conf
-    if [ "${USE_CALICO}" = "true" ] && [ ! -f "${TEMPLATE}" ]; then
+    if [ ! -f "${TEMPLATE}" ]; then
         echo "TEMPLATE: $TEMPLATE"
         mkdir -p $(dirname $TEMPLATE)
         cat << EOF > $TEMPLATE
@@ -776,23 +770,10 @@ EOF
             "k8s_api_root": "http://127.0.0.1:8080/api/v1/"
         }
     }
-}
-EOF
-    fi
+ }
 
-    local TEMPLATE=/etc/kubernetes/cni/net.d/10-flannel.conf
-    if [ "${USE_CALICO}" = "false" ] && [ ! -f "${TEMPLATE}" ]; then
-        echo "TEMPLATE: $TEMPLATE"
-        mkdir -p $(dirname $TEMPLATE)
-        cat << EOF > $TEMPLATE
-{
-    "name": "podnet",
-    "type": "flannel",
-    "delegate": {
-        "isDefaultGateway": true
-    }
-}
 EOF
+
     fi
 }
 
