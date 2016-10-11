@@ -657,11 +657,11 @@ EOF
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: kubernetes-dashboard-v1.4.1
+  name: kubernetes-dashboard-v1.4.0
   namespace: kube-system
   labels:
     k8s-app: kubernetes-dashboard
-    version: v1.4.1
+    version: v1.4.0
     kubernetes.io/cluster-service: "true"
 spec:
   replicas: 1
@@ -671,7 +671,7 @@ spec:
     metadata:
       labels:
         k8s-app: kubernetes-dashboard
-        version: v1.4.1
+        version: v1.4.0
         kubernetes.io/cluster-service: "true"
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
@@ -679,7 +679,7 @@ spec:
     spec:
       containers:
       - name: kubernetes-dashboard
-        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.1
+        image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.0
         resources:
           limits:
             cpu: 100m
